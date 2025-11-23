@@ -1,0 +1,152 @@
+root{
+  /* tweak these to match your design */
+  --scrollbar-width: 10px;
+  --scrollbar-thumb-width: 7px; /* visual thumb width */
+  --scrollbar-radius: 10px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(0,0,0,0.55);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.7);
+  --scrollbar-thumb-active: rgba(0,0,0,0.9);
+  --scrollbar-hitpad: 12px; /* larger interactive area for easier dragging */
+  --scrollbar-transition: 180ms cubic-bezier(.22,.9,.28,1);
+}
+
+/* preserve original scroll locking behavior */
+html.has-scroll-smooth { overflow: hidden; }
+.has-scroll-smooth body { overflow: hidden; }
+.has-scroll-smooth [data-scroll-container] { min-height: 100vh; }
+
+/* dragging selection behavior */
+html.has-scroll-dragging {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* horizontal layout support (unchanged semantics) */
+[data-scroll-direction="horizontal"] [data-scroll-container] {
+  height: 100vh;
+  display: inline-block;
+  white-space: nowrap;
+}
+[data-scroll-direction="horizontal"] [data-scroll-section] {
+  display: inline-block;
+  vertical-align: top;
+  white-space: nowrap;
+  height: 100%;
+}
+
+/* ---------- Custom scrollbar container ---------- */
+.c-scrollbar{
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: var(--scrollbar-width);
+  height: 100%;
+  transform-origin: center right;
+  transition: transform var(--scrollbar-transition), opacity var(--scrollbar-transition);
+  opacity: 0;
+  pointer-events: auto;
+  background: var(--scrollbar-track); /* usually transparent */
+  z-index: 9999;
+  will-change: opacity, transform;
+}
+
+/* show scrollbar on hover, scroll or dragging */
+.c-scrollbar:hover,
+.has-scroll-scrolling .c-scrollbar,
+.has-scroll-dragging .c-scrollbar {
+  opacity: 1;
+  transform: scaleX(1.2);
+}
+
+/* enlarge on hover for horizontal mode */
+[data-scroll-direction="horizontal"] .c-scrollbar {
+  width: 100%;
+  height: var(--scrollbar-width);
+  top: auto;
+  right: auto;
+  bottom: 0;
+  transform: scaleY(1);
+}
+[data-scroll-direction="horizontal"] .c-scrollbar:hover {
+  transform: scaleY(1.25);
+}
+
+/* ---------- Thumb ---------- */
+.c-scrollbar_thumb{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--scrollbar-thumb-width);
+  height: auto;
+  border-radius: var(--scrollbar-radius);
+  margin: 2px;
+  background: linear-gradient(180deg, var(--scrollbar-thumb), rgba(0,0,0,0.35));
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25), inset 0 1px rgba(255,255,255,0.02);
+  opacity: 0.95;
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--scrollbar-transition), transform var(--scrollbar-transition);
+  touch-action: none; /* required for better dragging on touch devices */
+  outline: none;
+}
+
+/* larger interactive hit area without changing visual size */
+.c-scrollbar_thumb::before{
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: calc(var(--scrollbar-hitpad) + var(--scrollbar-thumb-width));
+  height: calc(var(--scrollbar-hitpad) + var(--scrollbar-thumb-width));
+  border-radius: 50%;
+  /* invisible but increases pointer target */
+  background: transparent;
+  pointer-events: none; /* keep pointer-events on actual thumb for dragging */
+}
+
+/* dragging and active states */
+.has-scroll-dragging .c-scrollbar_thumb,
+.c-scrollbar_thumb:active {
+  cursor: grabbing;
+  transform: scale(1.02);
+  background: linear-gradient(180deg, var(--scrollbar-thumb-active), rgba(0,0,0,0.45));
+}
+
+/* hover */
+.c-scrollbar_thumb:hover {
+  background: linear-gradient(180deg, var(--scrollbar-thumb-hover), rgba(0,0,0,0.4));
+}
+
+/* horizontal thumb adjustments */
+[data-scroll-direction="horizontal"] .c-scrollbar_thumb{
+  right: auto;
+  bottom: 0;
+}
+
+/* keyboard + focus accessibility */
+.c-scrollbar_thumb:focus{
+  box-shadow: 0 0 0 3px rgba(0,125,255,0.18), 0 1px 4px rgba(0,0,0,0.25);
+  outline: none;
+  border-radius: calc(var(--scrollbar-radius));
+}
+
+/* make thumb reachable via keyboard: ensure it's focusable in JS (tabindex=0) */
+/* (note: add tabindex dynamically on init to avoid interfering with page tab order) */
+
+/* reduce motion preference */
+@media (prefers-reduced-motion: reduce){
+  :root{ --scrollbar-transition: 0ms; }
+  .c-scrollbar, .c-scrollbar_thumb { transition: none !important; }
+}
+
+/* High-contrast fallback for user agents where custom UI is hidden */
+@supports (scrollbar-color: auto) {
+  /* Let UA handle native fallback if needed */
+}
+
+/* Optional: hide native scrollbars on some browsers while keeping accessibility */
+html.has-scroll-smooth::-webkit-scrollbar { width: 0; height: 0; }
